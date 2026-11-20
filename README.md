@@ -55,6 +55,8 @@ The text of an episode: `load_cleaned_words(transcript_path, cleaned_path)` from
 
 ----------------------------
 
+# Measurement: TBD, Document outdated
+
 ## General Idea
 
 **Background.** LLM use homogenizes human language and reasoning ([Sourati et al.](https://doi.org/10.1016/j.tics.2026.01.003)). A meta-analysis finds a significant, small homogenization effect in human–AI co-creation ([de Rooij & Biskjaer](https://doi.org/10.1080/0144929X.2026.2726451)). Most of this evidence comes from written language, typically lab tasks done with or without AI.
