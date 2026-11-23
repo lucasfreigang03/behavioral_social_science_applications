@@ -5,7 +5,7 @@ import json
 import logging
 import re
 from transcribe import load_transcript_sentences, load_transcript_words, word_stats
-from config import AD_KEYWORDS_FILE_PATH, MAX_GAP_SEC, MIN_DISTINCT_HITS, PAD_SENTENCES
+from config import AD_KEYWORDS_FILE_PATH, MAX_GAP_SEC, MIN_DISTINCT_HITS, PAD_SENTENCES, MIN_WORDS_PER_EPISODE, FILLER_WORDS
 
 class AdRemover():
     """Marks ad sentences in a transcript with a keyword rule and saves the result as a second JSON file.
@@ -21,11 +21,11 @@ class AdRemover():
 
     def remove_podcasts_ads(self, df: pd.DataFrame) -> pd.DataFrame:
         """Mark ads in all episodes in df (columns episode_hash, transcript_path).
-        Returns one row per episode with episode_hash, success, path, n_words (words left without ads), n_speakers,
-        main_speaker_share, mean_confidence and error."""
+        Returns one row per episode with episode_hash, success, path, n_words (ad-free words without filler words),
+        n_ad_words (words removed as ads), n_speakers, main_speaker_share, mean_confidence (all three in the excerpt) and error."""
         with ThreadPoolExecutor(max_workers=self.max_workers) as ex:
             results = list(ex.map(self.__remove_one_podcast_ad, df["episode_hash"], df["transcript_path"]))
-        return pd.DataFrame(results, columns=["episode_hash", "success", "path", "n_words", "n_speakers",
+        return pd.DataFrame(results, columns=["episode_hash", "success", "path", "n_words", "n_ad_words", "n_speakers",
                                               "main_speaker_share", "mean_confidence", "error"])
 
     def __remove_one_podcast_ad(self, episode_hash: str, transcript_path: str):
@@ -62,15 +62,19 @@ class AdRemover():
 
             # 3. Save in the same structure as the transcript sentences, plus hits and is_ad.
             # Word counts and stats use the Deepgram word list, the same words the measures use later.
+            # The covariates are computed on the excerpt (first MIN_WORDS_PER_EPISODE words) that the measures use.
             words = load_transcript_words(transcript_path)
-            kept_words = keep_words(words, sentences)
+            ad_free_words = keep_words(words, sentences)
+            spoken_words = to_tokens(ad_free_words)
+            excerpt = spoken_words[:MIN_WORDS_PER_EPISODE]
             result = {
                 "n_words_total": len(words),
-                "n_words_kept": len(kept_words),
-                **word_stats(kept_words), # n_speakers, main_speaker_share, mean_confidence
+                "n_ad_words": len(words) - len(ad_free_words),
+                "n_words_kept": len(spoken_words),  # ad-free words without filler words
+                **word_stats(excerpt),               # n_speakers, main_speaker_share, mean_confidence
                 "paragraphs": paragraphs,
             }
-            
+
             with open(tmp, "w", encoding="utf-8") as f:
                 json.dump(result, f, indent=4)
             tmp.rename(out)
@@ -79,13 +83,13 @@ class AdRemover():
         except Exception as e:
             logging.error(f"Error during ad removal for {episode_hash}: {e}")
             tmp.unlink(missing_ok=True)
-            return episode_hash, False, None, None, None, None, None, repr(e)
+            return episode_hash, False, None, None, None, None, None, None, repr(e)
 
     def __result(self, episode_hash: str, out: Path):
         """Result row for a finished episode, read from the saved file (also used when the file already existed)."""
         with open(out, encoding="utf-8") as f:
             cleaned = json.load(f)
-        return (episode_hash, True, str(out), cleaned["n_words_kept"], cleaned["n_speakers"],
+        return (episode_hash, True, str(out), cleaned["n_words_kept"], cleaned["n_ad_words"], cleaned["n_speakers"],
                 cleaned["main_speaker_share"], cleaned["mean_confidence"], None)
 
     def __get_ad_keyword_list(self, keyword_file_path: Path) -> list:
@@ -135,9 +139,37 @@ def keep_words(words: list, sentences: list) -> list:
             kept.append(word)
     return kept
 
+def to_tokens(words: list) -> list:
+    """Return the words without filler words (FILLER_WORDS), each with an added "token": Deepgram's lowercased word
+    without punctuation. Numbers are already spelled out (transcribed without smart_format). Only letters, digits and
+    apostrophes are kept, so "word-of-mouth" -> "wordofmouth", while "don't" stays (removing the apostrophe would merge
+    "we're" with "were"). Words whose token is empty (e.g. "--") are dropped."""
+    tokens = []
+    for word in words:
+        if word["word"] in FILLER_WORDS:
+            continue
+        token = re.sub(r"[^\w']|_", "", word["word"])
+        if token:
+            tokens.append({**word, "token": token})
+    return tokens
+
 def load_cleaned_words(transcript_path: str, cleaned_path: str) -> list:
     """Return the words of the raw transcript without ads (dicts like load_transcript_words)."""
     with open(cleaned_path, encoding="utf-8") as f:
         paragraphs = json.load(f)["paragraphs"]
     sentences = [sentence for paragraph in paragraphs for sentence in paragraph["sentences"]]
     return keep_words(load_transcript_words(transcript_path), sentences)
+
+def load_excerpt(transcript_path: str, cleaned_path: str | None = None, remove_ads: bool = True,
+                 n_words: int = MIN_WORDS_PER_EPISODE) -> list:
+    """Return the excerpt the measures are computed on: the first n_words words without filler words and,
+    with remove_ads=True, without ads (needs cleaned_path). remove_ads=False gives the robustness check without ad cleaning.
+    Each word is a dict like in load_transcript_words plus "token" (see to_tokens). Compute the measures on word["token"]
+    and use word["speaker"] for host-only text. Returns fewer words if the episode has fewer."""
+    if remove_ads:
+        if cleaned_path is None:
+            raise ValueError("cleaned_path is needed to remove ads")
+        words = load_cleaned_words(transcript_path, cleaned_path)
+    else:
+        words = load_transcript_words(transcript_path)
+    return to_tokens(words)[:n_words]

@@ -31,10 +31,11 @@ class ProcessingPipeline():
             "audio_path": pd.NA,            # Path for audio wav file
             "transcript_path": pd.NA,       # Path for transcription json file
             "cleaned_path": pd.NA,          # Path for json file with ad marks
-            "n_words": pd.NA,               # Words left after ad removal
-            "n_speakers": pd.NA,            # Number of speakers (after ad removal)
-            "main_speaker_share": pd.NA,    # Share of words spoken by the main speaker (after ad removal)
-            "mean_confidence": pd.NA,       # Mean word confidence of the transcription (after ad removal)
+            "n_words": pd.NA,               # Words left after ad removal, without filler words
+            "n_ad_words": pd.NA,            # Words removed as ads
+            "n_speakers": pd.NA,            # Number of speakers in the excerpt (first MIN_WORDS_PER_EPISODE words)
+            "main_speaker_share": pd.NA,    # Share of excerpt words spoken by the main speaker
+            "mean_confidence": pd.NA,       # Mean word confidence of the transcription in the excerpt
             "score": pd.NA,                 # Spontaneity score 1-4
             "scripted": pd.NA,              # True if score is below the threshold
             "scripted_reason": pd.NA,       # One-sentence reason from the LLM
@@ -175,7 +176,7 @@ class ProcessingPipeline():
 
     def __remove_ads(self, df: pd.DataFrame, hashes: Series) -> pd.DataFrame:
         """Mark ads for the candidates with status "transcribed" and write the result to df.
-        Episodes with fewer than MIN_WORDS_PER_EPISODE words left fail."""
+        Episodes with fewer than MIN_WORDS_PER_EPISODE ad-free words without filler words fail."""
         todo = df[df["episode_hash"].isin(hashes) & (df["episode_status"] == "transcribed")]
         results = self.ad_remover.remove_podcasts_ads(todo)
 
@@ -188,11 +189,12 @@ class ProcessingPipeline():
             df.loc[row, "cleaned_path"] = result.path
             n_words = int(result.n_words) # type: ignore
             df.loc[row, "n_words"] = n_words
+            df.loc[row, "n_ad_words"] = result.n_ad_words
             df.loc[row, "n_speakers"] = result.n_speakers
             df.loc[row, "main_speaker_share"] = result.main_speaker_share
             df.loc[row, "mean_confidence"] = result.mean_confidence
             if n_words < MIN_WORDS_PER_EPISODE:
-                df = self.__fail_episode(df, row, "ad_removal", f"only {n_words} words left (minimum {MIN_WORDS_PER_EPISODE})")
+                df = self.__fail_episode(df, row, "ad_removal", f"only {n_words} words left without ads and filler words (minimum {MIN_WORDS_PER_EPISODE})")
             else:
                 df.loc[row, "episode_status"] = "cleaned"
 

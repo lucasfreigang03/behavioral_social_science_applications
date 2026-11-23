@@ -38,11 +38,14 @@ START_SEC, DURATION_SEC = 300, 600  # excerpt: minute 5-15
 # --- Transcription (Stage 5) ---
 TRANSCRIPTION_MODEL = "nova-3"
 
-# --- Ad removal (Stage 6), not final ---
+# --- Ad removal (Stage 6) ---
 MAX_GAP_SEC = 30                # keyword hits closer than this belong to the same ad block
 MIN_DISTINCT_HITS = 2           # a block needs this many different phrases to be cut
 PAD_SENTENCES = 2               # sentences cut before the first and after the last hit of a block
-MIN_WORDS_PER_EPISODE = 1000    # episodes with fewer words left after ad removal fail
+
+# --- Excerpt for the measures (Stages 6 and 8) ---
+MIN_WORDS_PER_EPISODE = 1200    # words per excerpt; episodes with fewer ad-free words without filler words fail
+FILLER_WORDS = ["uh", "um", "mhmm", "mm-mm", "uh-uh", "uh-huh", "nuh-uh"] # words Deepgram only returns with filler_words=True
 
 # --- Spontaneity check (Stage 7) ---
 SPONTANEITY_MODEL = "openai/gpt-oss-120b"
