@@ -11,20 +11,25 @@ SCREENING_YEARS = [2018, 2022]  # first and last pre-period year, no post-period
 SEED = 23                       # goes into the hash that gives podcasts and episodes their random rank
 MIN_PODCAST_LEN_MINUTES = 15    # shorter episodes are dropped
 
-N_PODCASTS = 3                  # podcasts per group
+N_PODCASTS = 65                 # podcasts per group
 K = 2                           # episodes per podcast and year
 K_TEST = 1                      # screening episodes per podcast and screening year
 BUFFER = 2                      # a podcast needs BUFFER * K episodes in every year, as reserve for failed episodes
 
-# One entry per group: group name -> filters on the PodcastIndex table
+# One entry per group: group name -> filters on the PodcastIndex table.
+# Values are matched case-insensitively with SQL LIKE, so "en%" means every English variant (en, en-us, en-GB, ...).
+# Only category1 is used: it is the first category of the feed, i.e. the podcast's main topic.
 GROUPS = {
-    "first": {"language": ["en", "en-us"],
-              "category1": ["games", "science"],
-              "category2": ["hobbies", "medicine"],
-              "category3": ["video games", "education"],
-              "newestItemPubdate": [2026],
-              "oldestItemPubdate": [2018],
-              "dead": ["0"]},
+    "tech": {"language": ["en%"],
+             "category1": ["technology"],
+             "newestItemPubdate": [2026],
+             "oldestItemPubdate": [2018],
+             "dead": ["0"]},
+    "comedy": {"language": ["en%"],
+               "category1": ["comedy"],
+               "newestItemPubdate": [2026],
+               "oldestItemPubdate": [2018],
+               "dead": ["0"]},
 }
 
 # --- Download (Stage 4) ---
