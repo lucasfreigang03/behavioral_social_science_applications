@@ -145,7 +145,7 @@ Each stage writes a file and skips already processed entries. No random sampling
 * **[CHEAP]** Save mean word `confidence` per episode (column `mean_confidence`) and report per year (transcription quality).
 * **[CORE]** Save number of speakers and the share of words spoken by the main speaker per episode (columns `n_speakers`, `main_speaker_share`, computed from the speaker labels in the 1,200-word excerpt). Preregistered covariates, since monologue and dialogue differ in vocabulary diversity.
 
-### Stage 6: Ad Removal — Implemented, rule not validated yet
+### Stage 6: Ad Removal — Completed
 
 * **[CORE]:** Keyword rule on sentence level ("predefined keywords" in the preregistration). The phrase list is in `processing/keywords/ad_keywords.txt` (sponsor announcements, promo codes, offers, calls to action, legal disclaimers, break transitions, self-promotion; no brand names, since sponsors change over the years). Sentences with hits that are at most $30\text{ s}$ apart form a block. A block is cut only if it contains at least 2 different phrases, together with 2 sentences before and after. The rule is not changed after data collection has started. Fewer than 1,200 ad-free words without filler words $\to$ episode `failed`, replacement.
 * The raw transcript is never changed. A second JSON file per episode (`transcriptions/ad_cleaned/`) holds all sentences with `hits` and `is_ad`, so the rule can be validated later without transcribing again.
@@ -225,14 +225,6 @@ Descriptive only (no test):
 
 ---
 
-### Work Distribution
-
-Lucas: Stages 3–7
-Carma: Stages 8–11
-Gaia: Writing, report
-
----
-
 ### Limitations for the Report (One sentence each on why it matters)
 
 1. **Parallel trends** (main limitation): Tech and Comedy may have experienced different industry or format changes unrelated to AI.
@@ -256,6 +248,7 @@ Gaia: Writing, report
 - Anderson, B. R., Shah, J. H., & Kreminski, M. (2024). Homogenization Effects of Large Language Models on Human Creative Ideation. Proceedings of the 16th Conference on Creativity & Cognition, 413–425. https://doi.org/10.1145/3635636.3656204
 - Bender, E. M., Gebru, T., McMillan-Major, A., & Shmitchell, S. (2021). On the Dangers of Stochastic Parrots: Can Language Models Be Too Big? 🦜. Proceedings of the 2021 ACM Conference on Fairness, Accountability, and Transparency, FAccT ’21, 610–623. https://doi.org/10.1145/3442188.3445922
 - Bommasani, R., Creel, K. A., Kumar, A., Jurafsky, D., & Liang, P. (2022). Picking on the Same Person: Does Algorithmic Monoculture Lead to Outcome Homogenization? Advances in Neural Information Processing Systems, 35. https://doi.org/10.52202/068431-0265
+- Chao, A., & Shen, T.-J. (2003). Nonparametric estimation of Shannon's index of diversity when there are unseen species in sample. Environmental and Ecological Statistics, 10(4), 429–443. https://doi.org/10.1023/A:1026096204727
 - de Rooij, A., & Biskjaer, M. M. (2026). Does generative AI make us think alike? A systematic review and meta-analysis of homogenisation effects in human–AI co-creation. Behaviour & Information Technology, 0(0), 1–14. https://doi.org/10.1080/0144929X.2026.2726451
 - Doshi, A. R., & Hauser, O. P. (2024). Generative AI enhances individual creativity but reduces the collective diversity of novel content. Science Advances, 10(28), eadn5290. https://doi.org/10.1126/sciadv.adn5290
 - Duede, E., Teplitskiy, M., Lakhani, K., & Evans, J. (2024). Being together in place as a catalyst for scientific advance. Research Policy, 53(2), 104911. https://doi.org/10.1016/j.respol.2023.104911
@@ -263,7 +256,6 @@ Gaia: Writing, report
 - Muthukrishna, M., & Henrich, J. (2016). Innovation in the collective brain. Philosophical Transactions of the Royal Society B: Biological Sciences, 371(1690), 20150192. https://doi.org/10.1098/rstb.2015.0192
 - Nijstad, B. A., Stroebe, W., & Lodewijkx, H. F. M. (2002). Cognitive stimulation and interference in groups: Exposure effects in an idea generation task. Journal of Experimental Social Psychology, 38(6), 535–544. https://doi.org/10.1016/S0022-1031(02)00500-0
 - Page, S. E. (2008). The Difference: How the Power of Diversity Creates Better Groups, Firms, Schools, and Societies. Princeton University Press.
+- Reddy et al. (2021). Detecting Extraneous Content in Podcasts, EACL, https://aclanthology.org/2021.eacl-main.99.
 - Sourati, Z., S. Ziabari, A., & Dehghani, M. (2026). The homogenizing effect of large language models on human expression and thought. Trends in Cognitive Sciences, 30(9), 805–816. https://doi.org/10.1016/j.tics.2026.01.003
 - Yakura, H., Lopez-Lopez, E., Brinkmann, L., de la Serna, I., Kirfel, L., Gupta, P., Soraperra, I., Eisenmann, T. F., Wulff, D. U., & Rahwan, I. (2024). Empirical evidence of Large Language Model's influence on human spoken communication. arXiv. https://doi.org/10.48550/arXiv.2409.01754
-
-To do: one entry could not be identified (Scopus record https://www.scopus.com/pages/publications/85166037135). Sources used in the plan but still missing here: Chao & Shen (2003, Chao-Shen entropy estimator), Reddy et al. (2021, Detecting Extraneous Content in Podcasts, EACL, https://aclanthology.org/2021.eacl-main.99).
