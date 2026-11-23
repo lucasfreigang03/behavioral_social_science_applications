@@ -33,7 +33,7 @@ GROUPS = {
 }
 
 # --- Download (Stage 4) ---
-START_SEC, DURATION_SEC = 300, 600  # excerpt: minute 5-15
+DURATION_SEC = 600              # excerpt length: the middle 10 minutes of the episode (midpoint +/- 5 min)
 
 # --- Transcription (Stage 5) ---
 TRANSCRIPTION_MODEL = "nova-3"

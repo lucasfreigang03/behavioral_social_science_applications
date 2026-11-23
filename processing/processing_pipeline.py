@@ -29,6 +29,9 @@ class ProcessingPipeline():
             "fail_stage": pd.NA,            # Stage in case of failure
             "episode_fail_reason": pd.NA,   # Reason in case of failure
             "audio_path": pd.NA,            # Path for audio wav file
+            "audio_duration_sec": pd.NA,    # Duration of the whole episode in seconds
+            "duration_source": pd.NA,       # "ffprobe" (audio file) or "feed" (itunes_duration, if ffprobe failed)
+            "excerpt_start_sec": pd.NA,     # Start of the downloaded excerpt (midpoint - 5 min)
             "transcript_path": pd.NA,       # Path for transcription json file
             "cleaned_path": pd.NA,          # Path for json file with ad marks
             "n_words": pd.NA,               # Words left after ad removal, without filler words
@@ -153,6 +156,9 @@ class ProcessingPipeline():
             row = df["episode_hash"] == result.episode_hash
             if result.success:
                 df.loc[row, "audio_path"] = result.path
+                df.loc[row, "audio_duration_sec"] = result.audio_duration_sec
+                df.loc[row, "duration_source"] = result.duration_source
+                df.loc[row, "excerpt_start_sec"] = result.excerpt_start_sec
                 df.loc[row, "episode_status"] = "downloaded"
             else:
                 df = self.__fail_episode(df, row, "download", result.error)
