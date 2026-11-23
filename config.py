@@ -1,10 +1,12 @@
 """All settings that define the study, in one place.
 These are the values that have to be reported and justified (see "Design Decisions" in the README).
 Purely technical settings (timeouts, retries, number of workers) stay in their modules."""
+from datetime import datetime, timezone
 from pathlib import Path
 
 # --- Sample (Stages 1-3) ---
-YEARS = [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
+YEARS = [2018, 2019, 2021, 2022, 2023, 2024, 2025, 2026]  # 2020 is excluded (pandemic changed recording conditions and formats)
+CHATGPT_RELEASE = datetime(2022, 11, 30, tzinfo=timezone.utc) # episodes published on or after this date in 2022 are not eligible
 SCREENING_YEARS = [2018, 2022]  # first and last pre-period year, no post-period episode is used for screening
 SEED = 23                       # goes into the hash that gives podcasts and episodes their random rank
 MIN_PODCAST_LEN_MINUTES = 15    # shorter episodes are dropped

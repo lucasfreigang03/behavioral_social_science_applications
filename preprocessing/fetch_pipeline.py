@@ -2,7 +2,7 @@ from filter_index import PodcastDatabase
 from extract_episodes import EpisodeFetcher
 import pandas as pd
 import hashlib
-from config import YEARS, MIN_PODCAST_LEN_MINUTES, SEED
+from config import YEARS, MIN_PODCAST_LEN_MINUTES, SEED, CHATGPT_RELEASE
 
 class FetchPipeline():
     """Builds the episode table for one group of podcasts: filter the index, fetch the episodes, add random ranks."""
@@ -15,8 +15,9 @@ class FetchPipeline():
 
     def build_podcast_df(self, k: int, buffer: int) -> pd.DataFrame: # k corresponds to num podcasts per year
         """Return one row per episode, sorted by podcast rank, year and episode rank.
-        Keeps episodes of at least MIN_PODCAST_LEN_MINUTES in YEARS, and only podcasts with at least buffer * k such episodes
-        in every year (k: episodes needed per podcast and year, buffer: reserve factor for episodes that fail later)."""
+        Keeps episodes of at least MIN_PODCAST_LEN_MINUTES in YEARS (in the release year only those published before CHATGPT_RELEASE),
+        and only podcasts with at least buffer * k such episodes in every year
+        (k: episodes needed per podcast and year, buffer: reserve factor for episodes that fail later)."""
         try:
             feed_urls = self.pod_db.filter(filters=self.filters)
             print(f"Num podcasts found: {len(feed_urls)}")
@@ -29,7 +30,9 @@ class FetchPipeline():
         df = df[length_mask]
         year_mask = df["episode_year"].isin(YEARS) # filter out episodes that are not in the desired years
         df = df[year_mask]
-        counts = df.groupby(["feed_url", "episode_year"]).size().unstack(fill_value=0).reindex(columns=YEARS, fill_value=0) # pd series with counts num of episodes with each covered year and fill up with zeros 
+        after_release = (df["episode_year"] == CHATGPT_RELEASE.year) & (df["episode_date"] >= CHATGPT_RELEASE)
+        df = df[~after_release] # 2022 episodes from the ChatGPT release on are neither pre- nor post-period
+        counts =df.groupby(["feed_url", "episode_year"]).size().unstack(fill_value=0).reindex(columns=YEARS, fill_value=0) # pd series with counts num of episodes with each covered year and fill up with zeros 
         keep = counts.index[(counts >= buffer * k).all(axis=1)] # keep only podcasts with counts >= k along columns (years)
         df = df[df["feed_url"].isin(keep)]
         df["group"] = self.group

@@ -1,5 +1,6 @@
 import feedparser
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 
 class EpisodeFetcher():
     """Reads podcast RSS feeds and returns one row per episode."""
@@ -10,7 +11,7 @@ class EpisodeFetcher():
         return rows
 
     def __fetch_episodes(self, feed_url):
-            """Return the episodes of one feed with title, year, audio URL and length in seconds.
+            """Return the episodes of one feed with title, publication date (UTC) and year, audio URL and length in seconds.
             Episodes without publication date or audio file are skipped. A feed that cannot be parsed gives an empty list."""
             try:
                 parsed = feedparser.parse(feed_url)
@@ -21,6 +22,7 @@ class EpisodeFetcher():
                     "feed_url": feed_url,
                     "podcast_title": parsed.feed.title,
                     "episode_title": entry["title"],
+                    "episode_date": datetime(*entry["published_parsed"][:6], tzinfo=timezone.utc), # feedparser gives the date in UTC
                     "episode_year": entry["published_parsed"].tm_year,
                     "episode_audio_url": entry["enclosures"][0]["href"],
                     "episode_length": self.__to_seconds(entry.get("itunes_duration", None))
