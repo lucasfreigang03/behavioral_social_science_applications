@@ -1,5 +1,6 @@
 """All settings that define the study, in one place.
-These are the values that have to be reported and justified (see "Design Decisions" in the README).
+These are the values that have to be reported and justified (see the "Study Plan" in the README).
+They follow the preregistration (AsPredicted #326482). They are not changed after data collection has started.
 Purely technical settings (timeouts, retries, number of workers) stay in their modules."""
 from datetime import datetime, timezone
 from pathlib import Path
