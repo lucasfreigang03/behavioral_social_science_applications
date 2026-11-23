@@ -4,6 +4,8 @@
 # Matching: lowercase the transcript, replace hyphens with spaces, drop punctuation
 # except apostrophes and "%", then search each phrase as a whole phrase
 # (not as a part of a longer word).
+# Transcripts are made without smart_format, so numbers and URLs are spelled out
+# ("twenty percent off", "dot com slash"); phrases are written the same way.
 #
 # Only multi-word phrases that rarely occur in normal conversation are listed.
 # Single generic words ("free", "sponsor", "offer", "deal", "save") are left out on purpose,
@@ -148,8 +150,8 @@ see site for details
 see website for details
 void where prohibited
 gambling problem
-must be 21 or older
-21 and older
+must be twenty one or older
+twenty one and older
 not available in all states
 eligibility restrictions apply
 results may vary

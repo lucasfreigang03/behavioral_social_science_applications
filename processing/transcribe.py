@@ -48,7 +48,8 @@ class EpisodeTranscriber():
                     filler_words=True, # Represents spoken language
                     diarize_model="v2", # Speaker seperation
                     paragraphs=True, # Extract speaker timings
-                    smart_format=True,
+                    punctuate=True, # Sentences for ad removal, punctuated_word for the spontaneity check
+                    smart_format=False, # Numbers stay spelled out as spoken ("twenty percent", not "20%")
                 )
         
             with open(tmp, "w", encoding='utf-8') as transcript_file:
